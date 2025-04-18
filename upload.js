@@ -1,338 +1,266 @@
-// Initialize Upload Page
-function initUpload() {
-    // Check auth state
-    auth.onAuthStateChanged((user) => {
-        if (!user) {
-            window.location.href = 'index.html';
-        } else {
-            // Load user data
-            loadUserData(user.uid);
-            
-            // Initialize file upload
-            initFileUpload();
-            
-            // Setup form navigation
-            setupFormNavigation();
-        }
+// Enhanced Upload System with PDF preview and validation
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize elements
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const browseFiles = document.getElementById('browseFiles');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadForm = document.querySelector('.upload-form');
+    const uploadButton = document.getElementById('uploadButton');
+    const previewContainer = document.getElementById('previewContainer');
+    const pdfPreview = document.getElementById('pdfPreview');
+    const imagePreview = document.getElementById('imagePreview');
+    const removePreviewBtn = document.getElementById('removePreview');
+    
+    let selectedFile = null;
+    let pdfjsLib = null;
+
+    // Load PDF.js library dynamically
+    const pdfjsScript = document.createElement('script');
+    pdfjsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js';
+    pdfjsScript.onload = () => {
+        pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+    };
+    document.head.appendChild(pdfjsScript);
+
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
     });
-    
-    // Setup event listeners
-    setupEventListeners();
-}
 
-// Load user data
-function loadUserData(userId) {
-    db.collection('users').doc(userId).get()
-        .then((doc) => {
-            if (doc.exists) {
-                const userData = doc.data();
-                
-                //Update UI with user data
-document.getElementById('dropdown-username').textContent = userData.name;
-document.getElementById('dropdown-useremail').textContent = userData.email;
-                            // Update avatar if available
-            if (userData.avatar) {
-                document.getElementById('user-avatar').src = userData.avatar;
-                document.querySelector('.dropdown-avatar').src = userData.avatar;
-            }
-        }
-    })
-    .catch((error) => {
-        console.error("Error loading user data:", error);
-    })
-        ;}
-
-// Initialize file upload
-function initFileUpload() {
-const uploadArea = document.getElementById('upload-area');
-const fileInput = document.getElementById('file-input');
-const browseBtn = document.querySelector('.browse-btn');
-const uploadProgress = document.getElementById('upload-progress');
-const progressBar = document.getElementById('progress-bar');
-const progressText = document.getElementById('progress-text');
-const uploadPreview = document.getElementById('upload-preview');
-const previewFilename = document.getElementById('preview-filename');
-const previewFilesize = document.getElementById('preview-filesize');
-const removeFileBtn = document.getElementById('remove-file');
-const step1NextBtn = document.getElementById('step1-next');
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
     }
 
-let selectedFile = null;
-
-// Browse files button
-browseBtn.addEventListener('click', () => {
-    fileInput.click();
-});
-
-// File input change
-fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-        handleFileSelection(e.target.files[0]);
-    }
-});
-
-// Drag and drop events
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, preventDefaults, false);
-});
-
-function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-['dragenter', 'dragover'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, highlight, false);
-});
-
-['dragleave', 'drop'].forEach(eventName => {
-    uploadArea.addEventListener(eventName, unhighlight, false);
-});
-
-function highlight() {
-    uploadArea.classList.add('drag-over');
-}
-
-function unhighlight() {
-    uploadArea.classList.remove('drag-over');
-}
-
-// Handle drop
-uploadArea.addEventListener('drop', (e) => {
-    const dt = e.dataTransfer;
-    const file = dt.files[0];
-    handleFileSelection(file);
-});
-
-// Handle file selection
-function handleFileSelection(file) {
-    // Validate file
-    const validTypes = ['application/pdf', 'application/msword', 
-                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                       'application/vnd.ms-powerpoint',
-                       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                       'image/jpeg', 'image/png'];
-    
-    if (!validTypes.includes(file.type)) {
-        alert('Please select a valid file type (PDF, DOC, PPT, JPG, PNG)');
-        return;
-    }
-    
-    // Check file size (max 20MB)
-    if (file.size > 20 * 1024 * 1024) {
-        alert('File size too large. Maximum allowed is 20MB.');
-        return;
-    }
-    
-    selectedFile = file;
-    
-    // Show preview
-    previewFilename.textContent = file.name;
-    previewFilesize.textContent = formatFileSize(file.size);
-    uploadPreview.style.display = 'block';
-    
-    // Enable next button
-    step1NextBtn.disabled = false;
-}
-
-// Remove file
-removeFileBtn.addEventListener('click', () => {
-    selectedFile = null;
-    fileInput.value = '';
-    uploadPreview.style.display = 'none';
-    step1NextBtn.disabled = true;
-});
-
-// Format file size
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-
-// Setup form navigation
-function setupFormNavigation() {
-const steps = document.querySelectorAll('.form-step');
-const stepButtons = document.querySelectorAll('.step');
-const prevButtons = document.querySelectorAll('.btn-prev');
-const nextButtons = document.querySelectorAll('.btn-next');
-    let currentStep = 0;
-
-// Show current step
-function showStep(stepIndex) {
-    steps.forEach((step, index) => {
-        step.classList.toggle('active', index === stepIndex);
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
     });
-    
-    stepButtons.forEach((step, index) => {
-        step.classList.toggle('active', index <= stepIndex);
-    });
-    
-    currentStep = stepIndex;
-}
 
-// Next button click
-nextButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        // Validate current step before proceeding
-        if (currentStep === 1 && !validateStep2()) {
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropArea.classList.add('highlight');
+    }
+
+    function unhighlight() {
+        dropArea.classList.remove('highlight');
+    }
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    // Browse files
+    browseFiles.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+        handleFiles(fileInput.files);
+    });
+
+    // Handle selected file
+    function handleFiles(files) {
+        if (files.length === 0) return;
+        
+        // Only allow single file upload for this version
+        const file = files[0];
+        
+        // Validate file type
+        const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+            showError('Only PDF and image files are allowed');
             return;
         }
         
-        if (currentStep === steps.length - 1) {
-            // Submit form if on last step
-            submitForm();
-        } else {
-            showStep(currentStep + 1);
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            showError('File size must be less than 10MB');
+            return;
         }
-    });
-});
+        
+        selectedFile = file;
+        updateFileInfo();
+        showPreview(file);
+    }
 
-// Previous button click
-prevButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        showStep(currentStep - 1);
-    });
-});
+    function updateFileInfo() {
+        if (!selectedFile) {
+            fileInfo.innerHTML = 'No file selected';
+            return;
+        }
+        
+        fileInfo.innerHTML = `
+            <div class="file-item">
+                <span>${selectedFile.name} (${formatFileSize(selectedFile.size)})</span>
+                <button class="remove-file" id="removeFileBtn">&times;</button>
+            </div>
+        `;
+        
+        document.getElementById('removeFileBtn').addEventListener('click', () => {
+            selectedFile = null;
+            updateFileInfo();
+            hidePreview();
+        });
+    }
 
-// Validate step 2 (details)
-function validateStep2() {
-    const title = document.getElementById('note-title').value.trim();
-    const subject = document.getElementById('note-subject').value;
-    const description = document.getElementById('note-description').value.trim();
-    
-    if (!title) {
-        alert('Please enter a title for your notes');
-        return false;
-    }
-    
-    if (!subject) {
-        alert('Please select a subject');
-        return false;
-    }
-    
-    if (!description) {
-        alert('Please provide a description');
-        return false;
-    }
-    
-    return true;
-}
-
-// Submit form
-function submitForm() {
-    const fileInput = document.getElementById('file-input');
-    const title = document.getElementById('note-title').value.trim();
-    const subject = document.getElementById('note-subject').value;
-    const course = document.getElementById('note-course').value.trim();
-    const tags = document.getElementById('note-tags').value.trim();
-    const description = document.getElementById('note-description').value.trim();
-    const visibility = document.getElementById('note-visibility').value;
-    
-    if (!fileInput.files.length) {
-        alert('Please select a file to upload');
-        showStep(0);
-        return;
-    }
-    
-    const file = fileInput.files[0];
-    const userId = auth.currentUser.uid;
-    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-    
-    // Show uploading progress
-    document.getElementById('upload-progress').style.display = 'block';
-    const progressBar = document.getElementById('progress-bar').querySelector('::after');
-    const progressText = document.getElementById('progress-text');
-    
-    // Upload file to Firebase Storage
-    const storageRef = storage.ref(`notes/${userId}/${Date.now()}_${file.name}`);
-    const uploadTask = storageRef.put(file);
-    
-    uploadTask.on('state_changed',
-        (snapshot) => {
-            // Progress
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            document.getElementById('progress-bar').style.width = `${progress}%`;
-            progressText.textContent = `Uploading: ${Math.round(progress)}%`;
-        },
-        (error) => {
-            // Error
-            console.error("Upload error:", error);
-            alert("Error uploading file. Please try again.");
-            showStep(0);
-        },
-        () => {
-            // Complete
-            uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                // Save note data to Firestore
-                const noteData = {
-                    title,
-                    subject,
-                    description,
-                    fileUrl: downloadURL,
-                    fileType: file.type,
-                    fileSize: file.size,
-                    fileName: file.name,
-                    userId,
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                    downloadCount: 0,
-                    viewCount: 0,
-                    visibility,
-                    course: course || null,
-                    tags: tags ? tags.split(',').map(tag => tag.trim()) : []
-                };
+    function showPreview(file) {
+        previewContainer.style.display = 'block';
+        
+        if (file.type === 'application/pdf') {
+            // Show PDF preview
+            pdfPreview.style.display = 'block';
+            imagePreview.style.display = 'none';
+            
+            // Render first page of PDF
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
                 
-                db.collection('notes').add(noteData)
-                    .then((docRef) => {
-                        console.log("Document written with ID: ", docRef.id);
-                        showStep(2); // Show completion step
-                    })
-                    .catch((error) => {
-                        console.error("Error adding document: ", error);
-                        alert("Error saving note details. Please try again.");
-                        showStep(1);
+                pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                    pdf.getPage(1).then(function(page) {
+                        const viewport = page.getViewport({ scale: 1.0 });
+                        const canvas = document.getElementById('pdfCanvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        
+                        page.render({
+                            canvasContext: context,
+                            viewport: viewport
+                        });
                     });
-            });
+                });
+            };
+            fileReader.readAsArrayBuffer(file);
+        } else {
+            // Show image preview
+            pdfPreview.style.display = 'none';
+            imagePreview.style.display = 'block';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
-    );
-}
-
-    // Setup event listeners
-function setupEventListeners() {
-// User dropdown toggle
-const userAvatar = document.getElementById('user-avatar');
-const userDropdown = document.getElementById('user-dropdown');
-    userAvatar.addEventListener('click', (e) => {
-    e.stopPropagation();
-    userDropdown.classList.toggle('active');
-});
-
-// Close dropdown when clicking outside
-document.addEventListener('click', () => {
-    userDropdown.classList.remove('active');
-});
-
-// Prevent dropdown from closing when clicking inside it
-userDropdown.addEventListener('click', (e) => {
-    e.stopPropagation();
-});
-
-// Sign out button
-document.getElementById('signout-btn').addEventListener('click', () => {
-    auth.signOut().then(() => {
-        window.location.href = 'index.html';
-    });
-});
     }
 
-// Initialize upload page when DOM is loaded
-document.addEventListener('DOMContentLoaded', initUpload);
+    function hidePreview() {
+        previewContainer.style.display = 'none';
+    }
 
+    removePreviewBtn.addEventListener('click', hidePreview);
 
-   
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Form submission
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!selectedFile) {
+            showError('Please select a file to upload');
+            return;
+        }
+        
+        const title = document.getElementById('noteTitle').value;
+        const subject = document.getElementById('noteSubject').value;
+        const description = document.getElementById('noteDescription').value;
+        const tags = document.getElementById('noteTags').value.split(',').map(tag => tag.trim());
+        const course = document.getElementById('noteCourse').value;
+        const isPublic = document.getElementById('isPublic').checked;
+        
+        if (!title) {
+            showError('Please enter a title for your notes');
+            return;
+        }
+        
+        uploadButton.disabled = true;
+        uploadButton.textContent = 'Uploading...';
+        
+        // Get current user
+        const user = auth.currentUser;
+        if (!user) {
+            showError('You need to be signed in to upload notes');
+            uploadButton.disabled = false;
+            uploadButton.textContent = 'Upload Notes';
+            return;
+        }
+        
+        try {
+            // Upload file to storage
+            const filePath = `notes/${user.uid}/${Date.now()}_${selectedFile.name}`;
+            const fileRef = storage.ref(filePath);
+            const uploadTask = fileRef.put(selectedFile);
+            
+            // Show upload progress
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    uploadButton.textContent = `Uploading ${Math.round(progress)}%`;
+                },
+                (error) => {
+                    throw error;
+                }
+            );
+            
+            // Wait for upload to complete
+            await uploadTask;
+            
+            // Get download URL
+            const downloadURL = await fileRef.getDownloadURL();
+            
+            // Create note document in Firestore
+            await db.collection('notes').add({
+                title,
+                subject,
+                description,
+                tags,
+                course,
+                isPublic,
+                filePath,
+                downloadURL,
+                fileName: selectedFile.name,
+                fileType: selectedFile.type,
+                fileSize: selectedFile.size,
+                uploadedBy: user.uid,
+                uploaderName: user.displayName || user.email,
+                uploaderPhotoURL: user.photoURL || '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                downloadCount: 0,
+                viewCount: 0,
+                rating: 0,
+                ratingCount: 0
+            });
+            
+            showSuccess('Notes uploaded successfully!');
+            uploadForm.reset();
+            selectedFile = null;
+            updateFileInfo();
+            hidePreview();
+            
+            // Redirect to notes page or user's dashboard
+            window.location.href = 'dashboard.html';
+        } catch (error) {
+            showError('Error uploading notes: ' + error.message);
+        } finally {
+            uploadButton.disabled = false;
+            uploadButton.textContent = 'Upload Notes';
+        }
+    });
+});
