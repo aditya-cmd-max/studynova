@@ -253,3 +253,138 @@ function setupProfileForms() {
         if (!currentPassword) {
             showError('Please enter your current password');
             return;
+    }
+    
+    if (newPassword !== confirmNewPassword) {
+        showError('New passwords do not match');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showError('Password must be at least 6 characters');
+        return;
+    }
+    
+    // Reauthenticate user
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+    );
+    
+    user.reauthenticateWithCredential(credential)
+        .then(() => {
+            // Update password
+            return user.updatePassword(newPassword);
+        })
+        .then(() => {
+            showSuccess('Password updated successfully!');
+            document.getElementById('securityForm').reset();
+        })
+        .catch(error => {
+            showError('Error updating password: ' + error.message);
+        });
+});
+
+// Connect Google Account
+document.getElementById('connectGoogleBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    const btn = e.target;
+    const isConnected = btn.textContent === 'Disconnect';
+    
+    if (isConnected) {
+        // Disconnect Google
+        // Note: This is complex as you need to ensure user has another auth provider
+        showError('Please add email/password authentication before disconnecting Google');
+    } else {
+        // Connect Google
+        const provider = new firebase.auth.GoogleAuthProvider();
+        user.linkWithPopup(provider)
+            .then((result) => {
+                // Update UI
+                document.getElementById('googleAccountStatus').textContent = 'Connected';
+                btn.textContent = 'Disconnect';
+                showSuccess('Google account connected successfully!');
+                
+                // Update user data in Firestore
+                return db.collection('users').doc(user.uid).update({
+                    providerData: result.user.providerData.map(p => ({
+                        providerId: p.providerId,
+                        uid: p.uid,
+                        displayName: p.displayName,
+                        email: p.email,
+                        photoURL: p.photoURL
+                    }))
+                });
+            })
+            .catch(error => {
+                showError('Error connecting Google account: ' + error.message);
+            });
+    }
+});
+
+// Preferences Form
+document.getElementById('preferencesForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    const darkMode = document.getElementById('darkModePref').checked;
+    const language = document.getElementById('languagePref').value;
+    const fontSize = document.getElementById('fontSizePref').value;
+    
+    db.collection('users').doc(user.uid).update({
+        preferences: {
+            darkMode,
+            language,
+            fontSize,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+    })
+    .then(() => {
+        showSuccess('Preferences saved!');
+        
+        // Apply dark mode immediately
+        document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+        
+        // Apply font size
+        document.body.style.fontSize = fontSize === 'small' ? '14px' : 
+                                     fontSize === 'large' ? '18px' : '16px';
+    })
+    .catch(error => {
+        showError('Error saving preferences: ' + error.message);
+    });
+});
+
+// Notifications Form
+document.getElementById('notificationsForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    const emailNotifications = document.getElementById('emailNotifications').checked;
+    const downloadNotifications = document.getElementById('downloadNotifications').checked;
+    const ratingNotifications = document.getElementById('ratingNotifications').checked;
+    const newsletterNotifications = document.getElementById('newsletterNotifications').checked;
+    
+    db.collection('users').doc(user.uid).update({
+        notifications: {
+            email: emailNotifications,
+            downloads: downloadNotifications,
+            ratings: ratingNotifications,
+            newsletter: newsletterNotifications,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+    })
+    .then(() => {
+        showSuccess('Notification settings saved!');
+    })
+    .catch(error => {
+        showError('Error saving notification settings: ' + error.message);
+    });
+});
