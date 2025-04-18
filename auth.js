@@ -1,235 +1,156 @@
-// Authentication System
-document.addEventListener('DOMContentLoaded', function() {
-    // Auth Modal Elements
-    const authModal = document.getElementById('authModal');
-    const signInButton = document.getElementById('signInButton');
-    const signUpButton = document.getElementById('signUpButton');
-    const closeModal = document.querySelector('.close-modal');
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const googleBtn = document.querySelector('.google-btn');
-    const signInForm = document.getElementById('signInForm');
-    const signUpForm = document.getElementById('signUpForm');
-    const signOutButton = document.getElementById('signOutButton');
-    const profileDropdown = document.getElementById('profile-dropdown');
-    const authButtons = document.getElementById('auth-buttons');
+// DOM Elements
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+const googleSignInBtn = document.getElementById('google-signin');
+const tabBtns = document.querySelectorAll('.tab-btn');
+const authForms = document.querySelectorAll('.auth-form');
 
-    // Open modal for sign in
-    signInButton.addEventListener('click', () => {
-        authModal.style.display = 'block';
-        switchTab('signin');
-    });
-
-    // Open modal for sign up
-    signUpButton.addEventListener('click', () => {
-        authModal.style.display = 'block';
-        switchTab('signup');
-    });
-
-    // Close modal
-    closeModal.addEventListener('click', () => {
-        authModal.style.display = 'none';
-    });
-
-    // Close modal when clicking outside
-    window.addEventListener('click', (e) => {
-        if (e.target === authModal) {
-            authModal.style.display = 'none';
-        }
-    });
-
-    // Tab switching
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tabId = button.getAttribute('data-tab');
-            if (tabId !== 'google') {
-                switchTab(tabId);
+// Tab Switching
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        
+        // Update active tab button
+        tabBtns.forEach(tb => tb.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Show corresponding form
+        authForms.forEach(form => {
+            form.classList.remove('active');
+            if (form.id === `${tabId}-form`) {
+                form.classList.add('active');
             }
         });
-    });
-
-    function switchTab(tabId) {
-        tabButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-tab') === tabId) {
-                btn.classList.add('active');
-            }
-        });
-
-        tabContents.forEach(content => {
-            content.style.display = 'none';
-            if (content.id === tabId) {
-                content.style.display = 'block';
-            }
-        });
-    }
-
-    // Google Sign In
-    googleBtn.addEventListener('click', signInWithGoogle);
-
-    // Email Sign In
-    signInForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('signInEmail').value;
-        const password = document.getElementById('signInPassword').value;
-        
-        signInWithEmail(email, password);
-    });
-
-    // Email Sign Up
-    signUpForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('signUpName').value;
-        const email = document.getElementById('signUpEmail').value;
-        const password = document.getElementById('signUpPassword').value;
-        const confirmPassword = document.getElementById('signUpConfirmPassword').value;
-        const userType = document.getElementById('userType').value;
-        
-        if (password !== confirmPassword) {
-            showError('Passwords do not match');
-            return;
-        }
-        
-        signUpWithEmail(name, email, password, userType);
-    });
-
-    // Sign Out
-    signOutButton.addEventListener('click', signOut);
-
-    // Check auth state on load
-    checkAuthState();
-
-    // Auth state observer
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            // User is signed in
-            authButtons.style.display = 'none';
-            profileDropdown.style.display = 'flex';
-            
-            // Set profile picture initial
-            const profilePic = profileDropdown.querySelector('.profile-pic');
-            const displayName = user.displayName || user.email.split('@')[0];
-            profilePic.textContent = displayName.charAt(0).toUpperCase();
-            
-            // Store user data in Firestore if new user
-            if (user.metadata.creationTime === user.metadata.lastSignInTime) {
-                storeUserData(user.uid, {
-                    name: user.displayName || displayName,
-                    email: user.email,
-                    userType: 'student', // Default, can be updated in profile
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } else {
-                // Update last login time
-                updateUserData(user.uid, {
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-            
-            // Close auth modal if open
-            authModal.style.display = 'none';
-        } else {
-            // User is signed out
-            authButtons.style.display = 'flex';
-            profileDropdown.style.display = 'none';
-        }
     });
 });
 
-// Auth Functions
-function checkAuthState() {
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            // User is signed in
-            document.getElementById('auth-buttons').style.display = 'none';
-            document.getElementById('profile-dropdown').style.display = 'flex';
-        } else {
-            // User is signed out
-            document.getElementById('auth-buttons').style.display = 'flex';
-            document.getElementById('profile-dropdown').style.display = 'none';
-        }
-    });
-}
-
-function signInWithEmail(email, password) {
+// Login with Email/Password
+loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
     auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            // Signed in successfully
-            showSuccess('Signed in successfully');
+            // Signed in
+            const user = userCredential.user;
+            window.location.href = 'dashboard.html';
         })
         .catch((error) => {
-            showError(error.message);
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            showAuthError(errorMessage);
         });
-}
+});
 
-function signUpWithEmail(name, email, password, userType) {
+// Register with Email/Password
+registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm').value;
+    const role = document.getElementById('register-role').value;
+    
+    if (password !== confirmPassword) {
+        showAuthError("Passwords don't match");
+        return;
+    }
+    
     auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            // Update user profile with display name
-            return userCredential.user.updateProfile({
-                displayName: name
+            // Signed up
+            const user = userCredential.user;
+            
+            // Save additional user data to Firestore
+            return db.collection('users').doc(user.uid).set({
+                name: name,
+                email: email,
+                role: role,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6c5ce7&color=fff`
             });
         })
         .then(() => {
-            showSuccess('Account created successfully!');
-            // Additional user data will be stored by the auth state observer
+            window.location.href = 'dashboard.html';
         })
         .catch((error) => {
-            showError(error.message);
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            showAuthError(errorMessage);
         });
-}
+});
 
-function signInWithGoogle() {
+// Google Sign-In
+googleSignInBtn.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
+    
     auth.signInWithPopup(provider)
         .then((result) => {
-            // Google sign in successful
-            showSuccess('Signed in with Google');
+            // This gives you a Google Access Token
+            const credential = result.credential;
+            const token = credential.accessToken;
+            const user = result.user;
+            
+            // Check if user exists in Firestore
+            const userRef = db.collection('users').doc(user.uid);
+            
+            userRef.get().then((doc) => {
+                if (!doc.exists) {
+                    // Create new user document
+                    return userRef.set({
+                        name: user.displayName,
+                        email: user.email,
+                        role: 'student', // Default role
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        avatar: user.photoURL
+                    });
+                }
+            }).then(() => {
+                window.location.href = 'dashboard.html';
+            });
         })
         .catch((error) => {
-            showError(error.message);
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            showAuthError(errorMessage);
         });
+});
+
+// Show error message
+function showAuthError(message) {
+    // Remove any existing error messages
+    const existingError = document.querySelector('.auth-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    const errorElement = document.createElement('div');
+    errorElement.className = 'auth-error';
+    errorElement.innerHTML = `
+        <div class="error-content">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Insert error message
+    const activeForm = document.querySelector('.auth-form.active');
+    activeForm.insertBefore(errorElement, activeForm.firstChild);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        errorElement.classList.add('fade-out');
+        setTimeout(() => {
+            errorElement.remove();
+        }, 300);
+    }, 5000);
 }
 
-function signOut() {
-    auth.signOut()
-        .then(() => {
-            showSuccess('Signed out successfully');
-        })
-        .catch((error) => {
-            showError(error.message);
-        });
-}
-
-function storeUserData(userId, data) {
-    db.collection('users').doc(userId).set(data)
-        .then(() => {
-            console.log('User data stored successfully');
-        })
-        .catch((error) => {
-            console.error('Error storing user data:', error);
-        });
-}
-
-function updateUserData(userId, data) {
-    db.collection('users').doc(userId).update(data)
-        .then(() => {
-            console.log('User data updated successfully');
-        })
-        .catch((error) => {
-            console.error('Error updating user data:', error);
-        });
-}
-
-// Notification functions
-function showSuccess(message) {
-    // Implement a nice notification system
-    console.log('Success:', message);
-    alert(message); // Replace with a proper notification system
-}
-
-function showError(message) {
-    console.error('Error:', message);
-    alert(message); // Replace with a proper notification system
-}
+// Check auth state
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        // User is signed in
+        window.location.href = 'dashboard.html';
+    }
+});
