@@ -1,88 +1,69 @@
-// app.js - Main application initialization
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Barba.js for page transitions
-    barba.init({
-        transitions: [{
-            name: 'default',
-            leave(data) {
-                return gsap.to(data.current.container, {
-                    opacity: 0,
-                    y: 50,
-                    duration: 0.5
-                });
-            },
-            enter(data) {
-                return gsap.from(data.next.container, {
-                    opacity: 0,
-                    y: 50,
-                    duration: 0.5
-                });
-            }
-        }],
-        views: [{
-            namespace: 'home',
-            beforeEnter() {
-                // Initialize home page specific elements
-            }
-        }, {
-            namespace: 'notes',
-            beforeEnter() {
-                // Initialize notes page specific elements
-                loadNotes();
-            }
-        }, {
-            namespace: 'upload',
-            beforeEnter() {
-                // Initialize upload page specific elements
-                if (!auth.currentUser) {
-                    window.location.hash = '#home';
-                    showError('You need to sign in to upload notes');
-                }
-            }
-        }]
-    });
-    
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                gsap.to(window, {
-                    duration: 1,
-                    scrollTo: {
-                        y: targetElement,
-                        offsetY: 80
-                    },
-                    ease: 'power3.out'
-                });
+
+## App JavaScript (app.js)
+
+```javascript
+// Common app functionality
+function initApp() {
+    // Check auth state for all pages except index.html
+    if (!window.location.pathname.includes('index.html')) {
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'index.html';
             }
         });
+    }
+    
+    // Initialize tooltips
+    initTooltips();
+    
+    // Initialize theme (dark mode by default)
+    initTheme();
+}
+
+// Initialize tooltips
+function initTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    
+    tooltipElements.forEach(element => {
+        const tooltipText = element.getAttribute('data-tooltip');
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = tooltipText;
+        document.body.appendChild(tooltip);
+        
+        element.addEventListener('mouseenter', (e) => {
+            const rect = e.target.getBoundingClientRect();
+            tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+            tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
+            tooltip.style.opacity = '1';
+        });
+        
+        element.addEventListener('mouseleave', () => {
+            tooltip.style.opacity = '0';
+        });
     });
+}
+
+// Initialize theme
+function initTheme() {
+    // Set dark mode by default
+    document.body.classList.add('dark-mode');
     
-    // Initialize all modules
-    initAuth();
-    initNotes();
-    initUpload();
-    initAnimations();
-    
-    function initAuth() {
-        // Auth system is initialized in auth.js
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('studynova-theme');
+    if (savedTheme) {
+        document.body.classList.toggle('dark-mode', savedTheme === 'dark');
     }
     
-    function initNotes() {
-        // Notes system is initialized in notes.js
+    // Theme toggle button (if exists)
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('studynova-theme', isDark ? 'dark' : 'light');
+        });
     }
-    
-    function initUpload() {
-        // Upload system is initialized in upload.js
-    }
-    
-    function initAnimations() {
-        // Animations are initialized in animations.js
-    }
-});
+}
+
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', initApp);
