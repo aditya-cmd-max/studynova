@@ -1,283 +1,97 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studynova - Learning Platform</title>
+    <title>Studynova - Learn Without Limits</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@barba/core"></script>
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body class="auth-page">
+    <div class="particles-background" id="particles-js"></div>
+    <div class="auth-container animate__animated animate__fadeIn">
+        <div class="auth-header glow">
+            <img src="images/logo.svg" alt="Studynova Logo" class="logo">
+            <h1>Welcome to Studynova</h1>
+            <p>Share knowledge, grow together</p>
+        </div>
+        
+        <div class="auth-tabs">
+            <button class="tab-btn active" data-tab="login">Sign In</button>
+            <button class="tab-btn" data-tab="register">Sign Up</button>
+        </div>
+        
+        <div class="auth-content">
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn-primary">Sign In</button>
+                <div class="auth-divider">
+                    <span>or continue with</span>
+                </div>
+                <button type="button" id="google-signin" class="btn-google">
+                    <i class="fab fa-google"></i> Google
+                </button>
+                <div class="auth-footer">
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+            </form>
+            
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="register-name">Full Name</label>
+                    <input type="text" id="register-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-confirm">Confirm Password</label>
+                    <input type="password" id="register-confirm" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-role">I am a:</label>
+                    <select id="register-role">
+                        <option value="student">Student</option>
+                        <option value="tutor">Tutor</option>
+                    </select>
+                </div>
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="register-terms" required>
+                    <label for="register-terms">I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a></label>
+                </div>
+                <button type="submit" class="btn-primary">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@barba/core"></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script src="firebase-config.js"></script>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="index.html" class="logo" data-aos="fade-right">
-                <i class="fas fa-book-open"></i> Studynova
-            </a>
-            <div class="menu-toggle" id="mobile-menu">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="#home" class="nav-links">Home</a></li>
-                <li class="nav-item"><a href="#notes" class="nav-links">Notes</a></li>
-                <li class="nav-item"><a href="#upload" class="nav-links">Upload</a></li>
-                <li class="nav-item"><a href="#about" class="nav-links">About</a></li>
-                <li class="nav-item"><div class="theme-switch-wrapper">
-                    <label class="theme-switch" for="checkbox">
-                        <input type="checkbox" id="checkbox">
-                        <div class="slider round"></div>
-                    </label>
-                </div></li>
-                <li class="nav-item"><div id="auth-buttons">
-                    <button id="signInButton" class="btn btn-primary">Sign In</button>
-                    <button id="signUpButton" class="btn btn-outline">Sign Up</button>
-                </div></li>
-                <li class="nav-item" id="profile-dropdown" style="display: none;">
-                    <div class="profile-pic"></div>
-                    <div class="dropdown-content">
-                        <a href="#profile">Profile</a>
-                        <a href="#settings">Settings</a>
-                        <a id="signOutButton">Sign Out</a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main id="barba-wrapper">
-        <div class="barba-container" data-barba="container">
-            <!-- Home Section -->
-            <section id="home" class="hero-section">
-                <div class="hero-content">
-                    <h1 class="hero-title" data-aos="fade-up">Elevate Your Learning Experience</h1>
-                    <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="100">Access premium educational resources shared by top tutors and students worldwide.</p>
-                    <div class="hero-buttons" data-aos="fade-up" data-aos-delay="200">
-                        <a href="#notes" class="btn btn-primary btn-glow">Browse Notes</a>
-                        <a href="#upload" class="btn btn-outline">Upload Content</a>
-                    </div>
-                </div>
-                <div class="hero-image" data-aos="fade-left">
-                    <div class="glow"></div>
-                    <img src="https://gradepowerlearning.com/wp-content/uploads/2018/09/how-to-use-self-study-scaled.jpeg" alt="Learning Illustration">
-                </div>
-            </section>
-
-            <!-- Notes Section -->
-            <section id="notes" class="notes-section">
-                <div class="section-header">
-                    <h2 data-aos="fade-up">Explore Study Materials</h2>
-                    <div class="search-filter" data-aos="fade-up" data-aos-delay="50">
-                        <input type="text" placeholder="Search notes...">
-                        <select>
-                            <option>All Subjects</option>
-                            <option>Mathematics</option>
-                            <option>Science</option>
-                            <option>History</option>
-                            <option>Literature</option>
-                        </select>
-                        <button class="btn btn-primary">Search</button>
-                    </div>
-                </div>
-                <div class="notes-grid" id="notesContainer">
-                    <!-- Notes will be loaded here dynamically -->
-                </div>
-            </section>
-
-            <!-- Upload Section -->
-            <section id="upload" class="upload-section">
-                <div class="upload-container">
-                    <h2 data-aos="fade-up">Share Your Knowledge</h2>
-                    <div class="upload-box" id="dropArea" data-aos="fade-up" data-aos-delay="50">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <h3>Drag & Drop Files Here</h3>
-                        <p>or</p>
-                        <button class="btn btn-primary" id="browseFiles">Browse Files</button>
-                        <input type="file" id="fileInput" multiple style="display: none;">
-                        <div class="file-info" id="fileInfo"></div>
-                    </div>
-                    <form class="upload-form" data-aos="fade-up" data-aos-delay="100">
-                        <div class="form-group">
-                            <label for="noteTitle">Title</label>
-                            <input type="text" id="noteTitle" placeholder="Enter note title">
-                        </div>
-                        <div class="form-group">
-                            <label for="noteSubject">Subject</label>
-                            <select id="noteSubject">
-                                <option value="mathematics">Mathematics</option>
-                                <option value="science">Science</option>
-                                <option value="history">History</option>
-                                <option value="literature">Literature</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="noteDescription">Description</label>
-                            <textarea id="noteDescription" placeholder="Describe your notes..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="noteTags">Tags (comma separated)</label>
-                            <input type="text" id="noteTags" placeholder="e.g., algebra, calculus, math">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-glow" id="uploadButton">Upload Notes</button>
-                    </form>
-                </div>
-            </section>
-
-            <!-- About Section -->
-            <section id="about" class="about-section">
-                <div class="about-content">
-                    <h2 data-aos="fade-up">About Studynova</h2>
-                    <p data-aos="fade-up" data-aos-delay="50">Studynova is a platform designed to bridge the gap between students and tutors, creating a collaborative learning environment where knowledge can be shared effortlessly.</p>
-                    <div class="features-grid">
-                        <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                            <div class="feature-icon">
-                                <i class="fas fa-book-reader"></i>
-                            </div>
-                            <h3>Comprehensive Notes</h3>
-                            <p>Access high-quality study materials from top students and tutors.</p>
-                        </div>
-                        <div class="feature-card" data-aos="fade-up" data-aos-delay="150">
-                            <div class="feature-icon">
-                                <i class="fas fa-share-alt"></i>
-                            </div>
-                            <h3>Easy Sharing</h3>
-                            <p>Upload and share your knowledge with the community effortlessly.</p>
-                        </div>
-                        <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                            <div class="feature-icon">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <h3>Smart Search</h3>
-                            <p>Find exactly what you need with our powerful search and filtering.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- Auth Modals -->
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <div class="auth-tabs">
-                <button class="tab-btn active" data-tab="signin">Sign In</button>
-                <button class="tab-btn" data-tab="signup">Sign Up</button>
-                <button class="tab-btn google-btn" data-tab="google">
-                    <i class="fab fa-google"></i> Continue with Google
-                </button>
-            </div>
-            <div class="tab-content" id="signin">
-                <form id="signInForm">
-                    <div class="form-group">
-                        <label for="signInEmail">Email</label>
-                        <input type="email" id="signInEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signInPassword">Password</label>
-                        <input type="password" id="signInPassword" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Sign In</button>
-                </form>
-            </div>
-            <div class="tab-content" id="signup" style="display: none;">
-                <form id="signUpForm">
-                    <div class="form-group">
-                        <label for="signUpName">Full Name</label>
-                        <input type="text" id="signUpName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signUpEmail">Email</label>
-                        <input type="email" id="signUpEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signUpPassword">Password</label>
-                        <input type="password" id="signUpPassword" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signUpConfirmPassword">Confirm Password</label>
-                        <input type="password" id="signUpConfirmPassword" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="userType">I am a:</label>
-                        <select id="userType">
-                            <option value="student">Student</option>
-                            <option value="tutor">Tutor</option>
-                        </select>
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <input type="checkbox" id="termsAgreement" required>
-                        <label for="termsAgreement">I agree to the <a href="#terms">Terms of Service</a> and <a href="#privacy">Privacy Policy</a></label>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Sign Up</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3>Studynova</h3>
-                <p>Empowering students and tutors through collaborative learning.</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-linkedin"></i></a>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#notes">Notes</a></li>
-                    <li><a href="#upload">Upload</a></li>
-                    <li><a href="#about">About</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h3>Legal</h3>
-                <ul>
-                    <li><a href="#terms">Terms of Service</a></li>
-                    <li><a href="#privacy">Privacy Policy</a></li>
-                    <li><a href="#cookies">Cookie Policy</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h3>Contact</h3>
-                <ul>
-                    <li><i class="fas fa-envelope"></i> support@studynova.com</li>
-                    <li><i class="fas fa-phone"></i> +1 (123) 456-7890</li>
-                    <li><i class="fas fa-map-marker-alt"></i> 123 Learning St, Edu City</li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2023 Studynova. All rights reserved.</p>
-        </div>
-    </footer>
-
     <script src="auth.js"></script>
-    <script src="upload.js"></script>
-    <script src="notes.js"></script>
     <script src="animations.js"></script>
-    <script src="app.js"></script>
 </body>
 </html>
