@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-barba="wrapper">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Notes | Studynova</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="upload.css">
+</head>
+<body data-barba="container" data-barba-namespace="upload">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <img src="images/logo.svg" alt="Studynova Logo">
+            <span>Studynova</span>
+        </div>
+        <div class="nav-links">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="notes.html">Notes</a>
+            <a href="courses.html">Courses</a>
+            <a href="discussions.html">Discussions</a>
+            <a href="upload.html" class="active">Upload</a>
+        </div>
+        <div class="nav-actions">
+            <img src="images/default-avatar.jpg" alt="User Avatar" class="user-avatar" id="user-avatar">
+        </div>
+    </nav>
+
+    <!-- User Dropdown -->
+    <div class="user-dropdown" id="user-dropdown">
+        <div class="dropdown-header">
+            <img src="images/default-avatar.jpg" alt="User Avatar" class="dropdown-avatar">
+            <div class="dropdown-user-info">
+                <h4 id="dropdown-username">John Doe</h4>
+                <span id="dropdown-useremail">john@example.com</span>
+            </div>
+        </div>
+        <div class="dropdown-links">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" id="signout-btn"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="upload-container">
+        <div class="upload-header">
+            <h1>Upload New Notes</h1>
+            <p>Share your knowledge with the Studynova community</p>
+        </div>
+
+        <div class="upload-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-title">Upload File</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-title">Add Details</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-title">Complete</div>
+            </div>
+        </div>
+
+        <form id="upload-form" class="upload-form">
+            <!-- Step 1: Upload File -->
+            <div class="form-step active" data-step="1">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Drag & Drop your file here</h3>
+                        <p>or</p>
+                        <button type="button" class="btn-primary browse-btn">Browse Files</button>
+                        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display: none;">
+                        <p class="file-types">Supported formats: PDF, DOC, PPT, JPG, PNG</p>
+                    </div>
+                    <div class="upload-progress" id="upload-progress">
+                        <div class="progress-bar" id="progress-bar"></div>
+                        <div class="progress-text" id="progress-text">Uploading: 0%</div>
+                    </div>
+                    <div class="upload-preview" id="upload-preview">
+                        <div class="preview-file">
+                            <i class="fas fa-file-alt"></i>
+                            <div class="file-info">
+                                <h4 id="preview-filename">filename.pdf</h4>
+                                <span id="preview-filesize">2.4 MB</span>
+                            </div>
+                            <button type="button" class="remove-file" id="remove-file">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-next" disabled id="step1-next">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Add Details -->
+            <div class="form-step" data-step="2">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="note-title">Note Title*</label>
+                        <input type="text" id="note-title" required placeholder="e.g. Calculus 101 Lecture Notes">
+                    </div>
+                    <div class="form-group">
+                        <label for="note-subject">Subject*</label>
+                        <select id="note-subject" required>
+                            <option value="" disabled selected>Select a subject</option>
+                            <option value="mathematics">Mathematics</option>
+                            <option value="physics">Physics</option>
+                            <option value="chemistry">Chemistry</option>
+                            <option value="biology">Biology</option>
+                            <option value="computer-science">Computer Science</option>
+                            <option value="engineering">Engineering</option>
+                            <option value="business">Business</option>
+                            <option value="arts">Arts</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="note-course">Course (optional)</label>
+                        <input type="text" id="note-course" placeholder="e.g. MATH 101">
+                    </div>
+                    <div class="form-group">
+                        <label for="note-tags">Tags (optional)</label>
+                        <input type="text" id="note-tags" placeholder="e.g. calculus, derivatives, limits">
+                        <small>Separate tags with commas</small>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="note-description">Description*</label>
+                        <textarea id="note-description" required placeholder="Provide a detailed description of your notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="note-visibility">Visibility*</label>
+                        <select id="note-visibility" required>
+                            <option value="public" selected>Public (Visible to everyone)</option>
+                            <option value="private">Private (Only visible to you)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-prev">Previous</button>
+                    <button type="button" class="btn-next" id="step2-next">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Complete -->
+            <div class="form-step" data-step="3">
+                <div class="upload-complete">
+                    <div class="complete-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2>Upload Complete!</h2>
+                    <p>Your notes have been successfully uploaded to Studynova.</p>
+                    <div class="complete-actions">
+                        <a href="notes.html" class="btn-primary">View Your Notes</a>
+                        <a href="upload.html" class="btn-secondary">Upload More</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Studynova</h3>
+                <p>Empowering students and tutors to share knowledge and grow together.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="notes.html">Notes</a></li>
+                    <li><a href="courses.html">Courses</a></li>
+                    <li><a href="discussions.html">Discussions</a></li>
+                    <li><a href="upload.html">Upload</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Tutorials</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Community Guidelines</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Legal</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                    <li><a href="#">GDPR</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 Studynova. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@barba/core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="upload.js"></script>
+    <script src="app.js"></script>
+    <script src="animations.js"></script>
+</body>
+</html>
