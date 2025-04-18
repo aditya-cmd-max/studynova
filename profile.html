@@ -1,0 +1,132 @@
+
+## 6. Courses System (courses.html and courses.js)
+
+```html
+<!-- courses.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses | Studynova</title>
+    <!-- Include all CSS and JS files as in index.html -->
+</head>
+<body>
+    <!-- Navigation (same as index.html) -->
+
+    <main id="barba-wrapper">
+        <div class="barba-container" data-barba="container">
+            <section class="courses-section">
+                <div class="courses-header">
+                    <h1>Courses</h1>
+                    <p>Browse and enroll in courses to organize your learning</p>
+                    <div class="courses-actions">
+                        <button class="btn btn-primary" id="createCourseBtn">
+                            <i class="fas fa-plus"></i> Create Course
+                        </button>
+                        <button class="btn btn-outline" id="joinCourseBtn">
+                            <i class="fas fa-sign-in-alt"></i> Join Course
+                        </button>
+                    </div>
+                </div>
+
+                <div class="courses-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="enrolled">My Courses</button>
+                        <button class="tab-btn" data-tab="available">Available Courses</button>
+                        <button class="tab-btn" data-tab="teaching">Teaching</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="enrolledTab">
+                        <div class="courses-grid" id="enrolledCourses">
+                            <!-- Enrolled courses will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="availableTab">
+                        <div class="search-filter">
+                            <input type="text" id="courseSearch" placeholder="Search courses...">
+                            <select id="courseCategory">
+                                <option value="">All Categories</option>
+                                <option value="math">Mathematics</option>
+                                <option value="science">Science</option>
+                                <option value="history">History</option>
+                                <option value="literature">Literature</option>
+                            </select>
+                            <button class="btn btn-primary" id="searchCoursesBtn">Search</button>
+                        </div>
+                        <div class="courses-grid" id="availableCourses">
+                            <!-- Available courses will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="teachingTab">
+                        <div class="courses-grid" id="teachingCourses">
+                            <!-- Teaching courses will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Course Creation Modal -->
+    <div class="modal" id="createCourseModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Create New Course</h2>
+            <form id="createCourseForm">
+                <div class="form-group">
+                    <label for="courseTitle">Course Title</label>
+                    <input type="text" id="courseTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="courseSubject">Subject</label>
+                    <select id="courseSubject" required>
+                        <option value="math">Mathematics</option>
+                        <option value="science">Science</option>
+                        <option value="history">History</option>
+                        <option value="literature">Literature</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="courseDescription">Description</label>
+                    <textarea id="courseDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="coursePrivacy">Privacy</label>
+                    <select id="coursePrivacy">
+                        <option value="public">Public (Anyone can join)</option>
+                        <option value="private">Private (Invite only)</option>
+                    </select>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="courseApproval" checked>
+                    <label for="courseApproval">Require approval to join</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Course</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Join Course Modal -->
+    <div class="modal" id="joinCourseModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Join Course</h2>
+            <form id="joinCourseForm">
+                <div class="form-group">
+                    <label for="courseCode">Course Code</label>
+                    <input type="text" id="courseCode" placeholder="Enter course invitation code" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Join Course</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer (same as index.html) -->
+
+    <script src="courses.js"></script>
+</body>
+</html>
