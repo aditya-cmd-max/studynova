@@ -388,3 +388,4 @@ document.getElementById('notificationsForm').addEventListener('submit', (e) => {
         showError('Error saving notification settings: ' + error.message);
     });
 });
+}
